@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-2">
             <Logo />
             <p className="mt-4 text-sm text-muted-foreground max-w-md">
-              PerformTest provides comprehensive performance testing tools to help you optimize your web applications and APIs for speed, reliability, and scalability.
+              ZPerformance provides comprehensive performance testing tools to help you optimize your web applications and APIs for speed, reliability, and scalability.
             </p>
           </div>
           
@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="border-t border-border/40 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} PerformTest. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} ZPerformance. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-muted-foreground hover:text-foreground">
               <span className="sr-only">Twitter</span>

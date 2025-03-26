@@ -10,7 +10,7 @@ const Logo: React.FC = () => {
           <div className="w-4 h-4 bg-orange-500 rounded-sm transform rotate-45"></div>
         </div>
       </div>
-      <span className="font-semibold text-xl tracking-tight">PerformTest</span>
+      <span className="font-semibold text-xl tracking-tight">ZPerformance</span>
     </div>
   );
 };

@@ -11,7 +11,7 @@ const Hero: React.FC = () => {
       </div>
       
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-orange-700 via-orange-500 to-orange-600">
-        PerformTest
+        ZPerformance
       </h1>
       <p className="text-lg md:text-xl text-gray-700 max-w-2xl mb-8">
         Comprehensive performance testing for web applications and APIs. 
