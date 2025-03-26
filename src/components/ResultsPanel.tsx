@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -307,7 +306,10 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value) => [`${value}%`, 'Percentage']}
+                      formatter={(value) => {
+                        // Check if value is a number before calling toFixed
+                        return [typeof value === 'number' ? `${value.toFixed(0)}%` : `${value}%`, 'Percentage'];
+                      }}
                       contentStyle={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }} 
                     />
                     <Legend />
@@ -332,7 +334,10 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                       label={{ value: 'Error Rate (%)', angle: -90, position: 'insideLeft' }} 
                     />
                     <Tooltip 
-                      formatter={(value) => [`${value.toFixed(2)}%`, 'Error Rate']}
+                      formatter={(value) => {
+                        // Check if value is a number before calling toFixed
+                        return [typeof value === 'number' ? `${value.toFixed(2)}%` : `${value}%`, 'Error Rate'];
+                      }}
                       contentStyle={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }} 
                     />
                     <Bar dataKey="value" fill="#e11d48" />
