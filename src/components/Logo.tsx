@@ -5,10 +5,11 @@ const Logo: React.FC = () => {
   return (
     <div className="flex items-center gap-2">
       <div className="relative w-8 h-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600 to-orange-400 rounded-md"></div>
-        <div className="absolute inset-[2px] bg-white rounded-[4px] flex items-center justify-center">
-          <div className="w-4 h-4 bg-orange-500 rounded-sm transform rotate-45"></div>
-        </div>
+        <img 
+          src="/lovable-uploads/c8dbf9ab-6e4a-450b-b202-bd9b5568f5f5.png" 
+          alt="ZPerformance Logo" 
+          className="w-full h-full object-contain"
+        />
       </div>
       <span className="font-semibold text-xl tracking-tight">ZPerformance</span>
     </div>
