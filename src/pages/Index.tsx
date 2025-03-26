@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import TestForm from '../components/TestForm';
@@ -14,32 +14,59 @@ const Index = () => {
   const [testStarted, setTestStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
+  const [timer, setTimer] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  
+  useEffect(() => {
+    // Cleanup timer on component unmount
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [timer]);
   
   const handleStartTest = (config: TestConfig) => {
     setIsLoading(true);
     setTestConfig(config);
+    setTimeRemaining(config.duration);
     
-    // Simulate API call for the test
-    toast.loading("Running performance test...", {
+    // Notify user that test is starting
+    toast.loading(`Running performance test for ${config.duration} seconds...`, {
       id: "test-running",
     });
     
-    setTimeout(() => {
-      setIsLoading(false);
-      setTestStarted(true);
-      toast.success("Test completed successfully", {
-        id: "test-running",
-        description: `${config.testType} test for ${config.url} completed`,
+    // Set up a timer that updates every second
+    const intervalId = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          // Time is up, clear interval and finish test
+          clearInterval(intervalId);
+          completeTest(config);
+          return 0;
+        }
+        return prev - 1;
       });
-      
-      // Scroll to results
-      setTimeout(() => {
-        document.getElementById('results')?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }, 100);
-    }, 3000);
+    }, 1000);
+    
+    setTimer(intervalId);
+  };
+  
+  const completeTest = (config: TestConfig) => {
+    setIsLoading(false);
+    setTestStarted(true);
+    setTimer(null);
+    
+    toast.success("Test completed successfully", {
+      id: "test-running",
+      description: `${config.testType} test for ${config.url} completed`,
+    });
+    
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('results')?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 100);
   };
   
   return (
@@ -71,7 +98,12 @@ const Index = () => {
                 <div className="absolute top-0 left-0 w-full h-full border-4 border-t-orange-500 rounded-full animate-spin"></div>
               </div>
               <p className="text-lg font-medium">Running performance test...</p>
-              <p className="text-sm text-muted-foreground mt-2">This may take a moment</p>
+              {timeRemaining !== null && (
+                <p className="text-sm text-orange-500 font-medium mt-2">
+                  Time remaining: {timeRemaining} seconds
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">Please wait while we analyze the results</p>
             </div>
           ) : !testStarted ? (
             <div className="flex flex-col items-center justify-center min-h-[300px] text-center px-4">
