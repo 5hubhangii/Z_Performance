@@ -8,7 +8,7 @@ import Features from '../components/Features';
 import Footer from '../components/Footer';
 import { TestConfig } from '../components/TestForm';
 import { toast } from "sonner";
-import { Play } from 'lucide-react';
+import { Play, AlertCircle } from 'lucide-react';
 import { runPerformanceTest, PerformanceMetrics } from '../services/performanceService';
 
 const Index = () => {
@@ -18,6 +18,7 @@ const Index = () => {
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | undefined>(undefined);
+  const [testError, setTestError] = useState<string | null>(null);
   
   useEffect(() => {
     // Cleanup timer on component unmount
@@ -30,6 +31,7 @@ const Index = () => {
     setIsLoading(true);
     setTestConfig(config);
     setTimeRemaining(config.duration);
+    setTestError(null);
     
     // Notify user that test is starting
     toast.loading(`Running performance test for ${config.duration} seconds...`, {
@@ -37,8 +39,11 @@ const Index = () => {
     });
     
     try {
+      console.log('Starting performance test for:', config.url);
+      
       // Run the performance test
       const metrics = await runPerformanceTest(config);
+      console.log('Test completed successfully, metrics:', metrics);
       setPerformanceMetrics(metrics);
       
       // Set up a timer that updates every second to simulate test running time
@@ -55,13 +60,18 @@ const Index = () => {
       }, 1000);
       
       setTimer(intervalId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running test:', error);
+      const errorMessage = error?.message || "Failed to run performance test";
+      setTestError(errorMessage);
+      
       toast.error("Test failed", {
         id: "test-running",
-        description: error instanceof Error ? error.message : "Failed to run performance test",
+        description: errorMessage,
       });
+      
       setIsLoading(false);
+      setTestStarted(false);
     }
   };
   
@@ -119,6 +129,17 @@ const Index = () => {
                 </p>
               )}
               <p className="text-sm text-muted-foreground mt-2">Please wait while we analyze the results</p>
+            </div>
+          ) : testError ? (
+            <div className="flex flex-col items-center justify-center min-h-[300px] text-center px-4">
+              <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
+              <h3 className="text-2xl font-medium mb-2">Test Failed</h3>
+              <p className="text-muted-foreground max-w-lg mb-4">
+                {testError}
+              </p>
+              <p className="text-muted-foreground max-w-lg">
+                Please try a different URL or check that the site allows cross-origin requests.
+              </p>
             </div>
           ) : !testStarted ? (
             <div className="flex flex-col items-center justify-center min-h-[300px] text-center px-4">

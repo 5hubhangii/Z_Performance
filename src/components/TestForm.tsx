@@ -24,34 +24,74 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
   const [url, setUrl] = useState('');
   const [testType, setTestType] = useState<'load' | 'endurance' | 'stress'>('load');
   const [users, setUsers] = useState(50);
-  const [duration, setDuration] = useState(10);
+  const [duration, setDuration] = useState(30); // Default increased to 30 seconds for better testing
   const [isApiEndpoint, setIsApiEndpoint] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setUrl(newUrl);
+    setUrlError(null);
     
-    // Check if it looks like an API endpoint
-    const isApi = newUrl.includes('/api/') || 
-                  newUrl.includes('.json') || 
-                  newUrl.includes('graphql') ||
-                  newUrl.toLowerCase().includes('endpoint');
-    setIsApiEndpoint(isApi);
+    try {
+      // Basic URL validation
+      if (newUrl && !newUrl.startsWith('http')) {
+        setUrlError("URL must start with http:// or https://");
+        return;
+      }
+      
+      // Additional URL validation if not empty
+      if (newUrl) {
+        new URL(newUrl);
+      }
+      
+      // Check if it looks like an API endpoint
+      const isApi = newUrl.includes('/api/') || 
+                    newUrl.includes('.json') || 
+                    newUrl.includes('graphql') ||
+                    newUrl.toLowerCase().includes('endpoint') ||
+                    newUrl.toLowerCase().includes('service');
+      setIsApiEndpoint(isApi);
+    } catch (e) {
+      if (newUrl) { // Only show error if URL is not empty
+        setUrlError("Please enter a valid URL");
+      }
+    }
+  };
+
+  const validateUrl = (urlToTest: string): boolean => {
+    try {
+      new URL(urlToTest);
+      
+      // Make sure URL starts with http or https
+      if (!urlToTest.startsWith('http')) {
+        setUrlError("URL must start with http:// or https://");
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      setUrlError("Please enter a valid URL");
+      return false;
+    }
   };
 
   const handleStartTest = () => {
     if (!url) {
-      toast.error("Please enter a valid URL");
+      setUrlError("Please enter a URL");
+      toast.error("Please enter a URL");
       return;
     }
     
     // URL validation
-    try {
-      new URL(url);
-    } catch (e) {
+    if (!validateUrl(url)) {
       toast.error("Please enter a valid URL");
       return;
     }
+
+    toast.info("Starting performance test...", {
+      description: `Testing ${isApiEndpoint ? 'API endpoint' : 'website'} with ${users} users for ${duration} seconds`
+    });
 
     onStartTest({
       url,
@@ -71,10 +111,20 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
           placeholder="https://example.com or https://api.example.com/endpoint"
           value={url}
           onChange={handleUrlChange}
-          className="border-none bg-secondary/30 focus-visible:ring-1 focus-visible:ring-orange-500/30"
+          className={`border-none bg-secondary/30 focus-visible:ring-1 focus-visible:ring-orange-500/30 ${urlError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+          aria-invalid={!!urlError}
         />
         
-        {isApiEndpoint && (
+        {urlError && (
+          <Alert className="mt-2 bg-red-100 border-red-200">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-700">
+              {urlError}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {isApiEndpoint && !urlError && (
           <Alert className="mt-2 bg-secondary/30 border-orange-200">
             <AlertCircle className="h-4 w-4 text-orange-500" />
             <AlertDescription>
@@ -127,7 +177,7 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
         <Slider
           id="duration"
           min={5}
-          max={60}
+          max={120}
           step={5}
           value={[duration]}
           onValueChange={(values) => setDuration(values[0])}
