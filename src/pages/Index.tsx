@@ -19,6 +19,32 @@ const Index = () => {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | undefined>(undefined);
   const [testError, setTestError] = useState<string | null>(null);
+  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null);
+  
+  // Check if backend is available on component mount
+  useEffect(() => {
+    const checkBackendAvailability = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/health', { 
+          method: 'GET',
+          mode: 'cors'
+        });
+        
+        if (response.ok) {
+          console.log('Backend is available');
+          setBackendAvailable(true);
+        } else {
+          console.warn('Backend health check failed');
+          setBackendAvailable(false);
+        }
+      } catch (error) {
+        console.warn('Backend not available:', error);
+        setBackendAvailable(false);
+      }
+    };
+    
+    checkBackendAvailability();
+  }, []);
   
   useEffect(() => {
     // Cleanup timer on component unmount
@@ -33,13 +59,26 @@ const Index = () => {
     setTimeRemaining(config.duration);
     setTestError(null);
     
-    // Notify user that test is starting
-    toast.loading(`Running performance test for ${config.duration} seconds...`, {
-      id: "test-running",
-    });
+    // Show appropriate notification based on backend availability
+    if (backendAvailable === false) {
+      toast.info(`Running simulated test (JMeter backend not detected)...`, {
+        id: "test-running",
+        description: "Running with frontend simulation as the JMeter backend is not available"
+      });
+    } else {
+      toast.loading(`Running performance test for ${config.duration} seconds...`, {
+        id: "test-running",
+        description: `Testing ${config.url} with JMeter using ${config.users} users`
+      });
+    }
     
     try {
       console.log('Starting performance test for:', config.url);
+      
+      // If backend is not available, show a warning
+      if (backendAvailable === false) {
+        console.warn('Using frontend fallback for performance testing');
+      }
       
       // Run the performance test
       const metrics = await runPerformanceTest(config);
@@ -80,9 +119,12 @@ const Index = () => {
     setTestStarted(true);
     setTimer(null);
     
+    // Update toast with completion message
+    const testSource = backendAvailable ? 'JMeter' : 'simulation';
+    
     toast.success("Test completed successfully", {
       id: "test-running",
-      description: `${config.testType} test for ${config.url} completed`,
+      description: `${config.testType} test for ${config.url} completed using ${testSource}`,
     });
     
     // Scroll to results
@@ -108,6 +150,15 @@ const Index = () => {
               Enter your website URL or API endpoint to begin testing. 
               Configure test parameters to match your specific requirements.
             </p>
+            {backendAvailable === false && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700 max-w-2xl mx-auto">
+                <AlertCircle className="inline-block h-4 w-4 mr-2" />
+                JMeter backend not detected. Tests will run in simulation mode.
+                <div className="text-xs mt-1">
+                  Follow the setup instructions in the backend/README.md file to enable real JMeter testing.
+                </div>
+              </div>
+            )}
           </div>
           
           <TestForm onStartTest={handleStartTest} />

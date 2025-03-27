@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Play, AlertCircle } from "lucide-react";
+import { Play, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -24,7 +24,7 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
   const [url, setUrl] = useState('');
   const [testType, setTestType] = useState<'load' | 'endurance' | 'stress'>('load');
   const [users, setUsers] = useState(50);
-  const [duration, setDuration] = useState(30); // Default increased to 30 seconds for better testing
+  const [duration, setDuration] = useState(30);
   const [isApiEndpoint, setIsApiEndpoint] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
 
@@ -89,8 +89,9 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
       return;
     }
 
-    toast.info("Starting performance test...", {
-      description: `Testing ${isApiEndpoint ? 'API endpoint' : 'website'} with ${users} users for ${duration} seconds`
+    toast.info("Preparing performance test...", {
+      description: `Testing ${isApiEndpoint ? 'API endpoint' : 'website'} with ${users} users for ${duration} seconds`,
+      duration: 3000
     });
 
     onStartTest({
@@ -126,9 +127,9 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
         
         {isApiEndpoint && !urlError && (
           <Alert className="mt-2 bg-secondary/30 border-orange-200">
-            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <Info className="h-4 w-4 text-orange-500" />
             <AlertDescription>
-              This appears to be an API endpoint. Performance testing will use specialized metrics appropriate for APIs.
+              This appears to be an API endpoint. JMeter will use specialized API test configuration.
             </AlertDescription>
           </Alert>
         )}
@@ -167,6 +168,9 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
             onValueChange={(values) => setUsers(values[0])}
             className="py-4"
           />
+          <p className="text-xs text-muted-foreground">
+            More users will generate higher concurrent load on the target system
+          </p>
         </div>
       </div>
 
@@ -183,6 +187,9 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
           onValueChange={(values) => setDuration(values[0])}
           className="py-4"
         />
+        <p className="text-xs text-muted-foreground">
+          Longer tests provide more accurate results but take more time to complete
+        </p>
       </div>
 
       <Button 

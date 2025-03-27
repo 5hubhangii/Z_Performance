@@ -1,70 +1,58 @@
 
-# Z Performance
+# Performance Testing Application
 
-## Project info
+A web application for running performance tests on websites and API endpoints using Apache JMeter.
 
-**URL**: https://lovable.dev/projects/410f833c-1332-42c9-a6bf-472f44a392a6
+## Features
 
-## How can I edit this code?
+- Test websites and API endpoints
+- Configure test parameters (users, duration, test type)
+- Visualize test results with graphs and charts
+- View detailed performance metrics
 
-There are several ways of editing your application.
+## Setup Instructions
 
-**Use Lovable**
+### Frontend (React)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/410f833c-1332-42c9-a6bf-472f44a392a6) and start prompting.
+1. Install Node.js dependencies:
+   ```
+   npm install
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. Start the development server:
+   ```
+   npm run dev
+   ```
 
-**Use your preferred IDE**
+### Backend (Python & JMeter)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The application uses a Python backend with Apache JMeter for real performance testing.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Install Python 3.7+ if not already installed
+2. Download and install Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
+3. Navigate to the backend directory:
+   ```
+   cd backend
+   ```
+4. Install Python dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+5. Place the JMeter installation in the `./jmeter` directory (or update the `JMETER_HOME` path in `jmeter_runner.py`)
+6. Start the backend server:
+   ```
+   python jmeter_runner.py
+   ```
 
-Follow these steps:
+## Usage
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Enter a website URL or API endpoint
+2. Configure test parameters (users, duration, test type)
+3. Click "Start Test" to begin the performance test
+4. View the results in the graphs and charts below
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Notes
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/410f833c-1332-42c9-a6bf-472f44a392a6) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+- If the JMeter backend is not available, the application will fall back to a simulation mode
+- For best results, run JMeter on a dedicated machine with sufficient resources
+- The frontend application communicates with the backend via HTTP API
