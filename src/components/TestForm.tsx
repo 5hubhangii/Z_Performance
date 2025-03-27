@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Play } from "lucide-react";
+import { Play, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TestFormProps {
   onStartTest: (testConfig: TestConfig) => void;
@@ -24,6 +25,19 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
   const [testType, setTestType] = useState<'load' | 'endurance' | 'stress'>('load');
   const [users, setUsers] = useState(50);
   const [duration, setDuration] = useState(10);
+  const [isApiEndpoint, setIsApiEndpoint] = useState(false);
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUrl = e.target.value;
+    setUrl(newUrl);
+    
+    // Check if it looks like an API endpoint
+    const isApi = newUrl.includes('/api/') || 
+                  newUrl.includes('.json') || 
+                  newUrl.includes('graphql') ||
+                  newUrl.toLowerCase().includes('endpoint');
+    setIsApiEndpoint(isApi);
+  };
 
   const handleStartTest = () => {
     if (!url) {
@@ -56,9 +70,18 @@ const TestForm: React.FC<TestFormProps> = ({ onStartTest }) => {
           type="url"
           placeholder="https://example.com or https://api.example.com/endpoint"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={handleUrlChange}
           className="border-none bg-secondary/30 focus-visible:ring-1 focus-visible:ring-orange-500/30"
         />
+        
+        {isApiEndpoint && (
+          <Alert className="mt-2 bg-secondary/30 border-orange-200">
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <AlertDescription>
+              This appears to be an API endpoint. Performance testing will use specialized metrics appropriate for APIs.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

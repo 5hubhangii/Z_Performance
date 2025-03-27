@@ -15,7 +15,7 @@ const Index = () => {
   const [testStarted, setTestStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
-  const [timer, setTimer] = useState<number | null>(null);
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | undefined>(undefined);
   
