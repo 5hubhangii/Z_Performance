@@ -19,9 +19,9 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration - update these paths to match your JMeter installation
-JMETER_HOME = "./jmeter"  # Relative path to JMeter installation
-TEST_CASES_DIR = "./test_cases"  # Directory containing JMeter test cases
-RESULTS_DIR = "./results"  # Directory to store test results
+JMETER_HOME = "C:/Jmeter/apache-jmeter-5.6.3/bin"  # Relative path to JMeter installation
+TEST_CASES_DIR = "C:/Z_Performance/backend/test_cases/"  # Directory containing JMeter test cases
+RESULTS_DIR = "C:/Z_Performance/backend/results/"  # Directory to store test results
 
 # Ensure directories exist
 os.makedirs(TEST_CASES_DIR, exist_ok=True)
@@ -70,7 +70,7 @@ def find_test_case(keyword, is_api):
         return exact_path
     
     # Use default test cases as fallback
-    default_test = "default_api.jmx" if is_api else "default_web.jmx"
+    default_test = "apache.jmx" if is_api else "apache.jmx"
     default_path = os.path.join(TEST_CASES_DIR, default_test)
     
     if os.path.exists(default_path):
