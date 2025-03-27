@@ -7,34 +7,61 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  generateLoadTimeData, generateLatencyData, generateConcurrentUsersData,
-  generateErrorRateData, generateRequestsPerSecondData, generateStatusCodeDistribution,
-  generatePerformanceScoreData, generateSummaryData
-} from './MockData';
 import { TestConfig } from './TestForm';
+import { PerformanceMetrics } from '../services/performanceService';
 
 interface ResultsPanelProps {
   testConfig: TestConfig;
   isVisible: boolean;
+  metrics?: PerformanceMetrics; // Real performance metrics from API
 }
 
 const COLORS = ['#f97316', '#78c6fa', '#46c93a', '#e11d48', '#a855f7'];
 
-const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) => {
+const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible, metrics }) => {
   if (!isVisible) return null;
   
   const { url, testType, users, duration } = testConfig;
   
-  // Generate mock data based on test configuration
-  const loadTimeData = generateLoadTimeData(duration);
-  const latencyData = generateLatencyData(duration);
-  const concurrentUsersData = generateConcurrentUsersData(duration, users);
-  const errorRateData = generateErrorRateData(duration);
-  const requestsPerSecondData = generateRequestsPerSecondData(duration, users);
-  const statusCodeData = generateStatusCodeDistribution();
-  const performanceScores = generatePerformanceScoreData();
-  const summaryData = generateSummaryData(testType, duration, users);
+  if (!metrics) {
+    return (
+      <div className="w-full flex items-center justify-center min-h-[300px]">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-2">No data available</p>
+          <p className="text-sm text-muted-foreground">Please run a test to see results</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform data for charts
+  const loadTimeData = metrics.loadTime.map((value, index) => ({
+    time: (index * (duration / metrics.loadTime.length)).toFixed(1),
+    value
+  }));
+  
+  const latencyData = metrics.latency.map((value, index) => ({
+    time: (index * (duration / metrics.latency.length)).toFixed(1),
+    value
+  }));
+  
+  const concurrentUsersData = Array(metrics.loadTime.length).fill(0).map((_, index) => {
+    const usersPct = Math.min(1, (index + 1) / metrics.loadTime.length);
+    return {
+      time: (index * (duration / metrics.loadTime.length)).toFixed(1),
+      value: Math.floor(usersPct * users)
+    };
+  });
+  
+  const errorRateData = metrics.errorRate.map((value, index) => ({
+    time: (index * (duration / metrics.errorRate.length)).toFixed(1),
+    value
+  }));
+  
+  const requestsPerSecondData = metrics.requestsPerSecond.map((value, index) => ({
+    time: (index * (duration / metrics.requestsPerSecond.length)).toFixed(1),
+    value
+  }));
 
   return (
     <div className={`w-full space-y-8 ${isVisible ? 'animate-fade-in' : 'hidden'}`}>
@@ -49,15 +76,15 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <p className="text-sm font-medium">Average Load Time</p>
-              <p className="text-3xl font-bold text-orange-500">{summaryData.avgLoadTime} ms</p>
+              <p className="text-3xl font-bold text-orange-500">{metrics.summary.avgLoadTime} ms</p>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium">Requests Per Second</p>
-              <p className="text-3xl font-bold text-orange-500">{summaryData.peakRps}</p>
+              <p className="text-3xl font-bold text-orange-500">{metrics.summary.peakRps}</p>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium">Success Rate</p>
-              <p className="text-3xl font-bold text-orange-500">{summaryData.successRate}%</p>
+              <p className="text-3xl font-bold text-orange-500">{metrics.summary.successRate}%</p>
             </div>
           </div>
         </CardContent>
@@ -207,7 +234,7 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
               <CardContent className="flex flex-col items-center justify-center h-72">
                 <div className="relative w-44 h-44 mb-4">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl font-bold">{performanceScores.overall}</span>
+                    <span className="text-5xl font-bold">{metrics.performanceScores.overall}</span>
                   </div>
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle 
@@ -222,15 +249,15 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                       fill="none" 
                       stroke="currentColor" 
                       strokeWidth="10" 
-                      strokeDasharray={`${2 * Math.PI * 45 * performanceScores.overall/100} ${2 * Math.PI * 45 * (100-performanceScores.overall)/100}`} 
+                      strokeDasharray={`${2 * Math.PI * 45 * metrics.performanceScores.overall/100} ${2 * Math.PI * 45 * (100-metrics.performanceScores.overall)/100}`} 
                       className="text-orange-500" 
                     />
                   </svg>
                 </div>
                 <p className="text-xl text-muted-foreground text-center">
-                  {performanceScores.overall >= 90 ? 'Excellent' : 
-                   performanceScores.overall >= 80 ? 'Good' : 
-                   performanceScores.overall >= 70 ? 'Average' : 'Needs Improvement'}
+                  {metrics.performanceScores.overall >= 90 ? 'Excellent' : 
+                   metrics.performanceScores.overall >= 80 ? 'Good' : 
+                   metrics.performanceScores.overall >= 70 ? 'Average' : 'Needs Improvement'}
                 </p>
               </CardContent>
             </Card>
@@ -243,40 +270,40 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-medium">Time to First Byte (TTFB)</p>
-                    <p className="text-sm font-medium">{performanceScores.ttfb}</p>
+                    <p className="text-sm font-medium">{metrics.performanceScores.ttfb}</p>
                   </div>
-                  <Progress value={performanceScores.ttfb} className="h-2 bg-secondary/50">
-                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${performanceScores.ttfb}%` }}></div>
+                  <Progress value={metrics.performanceScores.ttfb} className="h-2 bg-secondary/50">
+                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${metrics.performanceScores.ttfb}%` }}></div>
                   </Progress>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-medium">First Contentful Paint (FCP)</p>
-                    <p className="text-sm font-medium">{performanceScores.fcp}</p>
+                    <p className="text-sm font-medium">{metrics.performanceScores.fcp}</p>
                   </div>
-                  <Progress value={performanceScores.fcp} className="h-2 bg-secondary/50">
-                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${performanceScores.fcp}%` }}></div>
+                  <Progress value={metrics.performanceScores.fcp} className="h-2 bg-secondary/50">
+                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${metrics.performanceScores.fcp}%` }}></div>
                   </Progress>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-medium">Largest Contentful Paint (LCP)</p>
-                    <p className="text-sm font-medium">{performanceScores.lcp}</p>
+                    <p className="text-sm font-medium">{metrics.performanceScores.lcp}</p>
                   </div>
-                  <Progress value={performanceScores.lcp} className="h-2 bg-secondary/50">
-                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${performanceScores.lcp}%` }}></div>
+                  <Progress value={metrics.performanceScores.lcp} className="h-2 bg-secondary/50">
+                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${metrics.performanceScores.lcp}%` }}></div>
                   </Progress>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-medium">Time to Load (TTL)</p>
-                    <p className="text-sm font-medium">{performanceScores.ttl}</p>
+                    <p className="text-sm font-medium">{metrics.performanceScores.ttl}</p>
                   </div>
-                  <Progress value={performanceScores.ttl} className="h-2 bg-secondary/50">
-                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${performanceScores.ttl}%` }}></div>
+                  <Progress value={metrics.performanceScores.ttl} className="h-2 bg-secondary/50">
+                    <div className="bg-orange-500 h-full rounded-full" style={{ width: `${metrics.performanceScores.ttl}%` }}></div>
                   </Progress>
                 </div>
               </CardContent>
@@ -294,7 +321,7 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={statusCodeData}
+                      data={metrics.statusCodes}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -302,13 +329,12 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                       outerRadius={80}
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {statusCodeData.map((entry, index) => (
+                      {metrics.statusCodes.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip 
                       formatter={(value) => {
-                        // Check if value is a number before calling toFixed
                         return [typeof value === 'number' ? `${value.toFixed(0)}%` : `${value}%`, 'Percentage'];
                       }}
                       contentStyle={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }} 
@@ -336,7 +362,6 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ testConfig, isVisible }) =>
                     />
                     <Tooltip 
                       formatter={(value) => {
-                        // Check if value is a number before calling toFixed
                         return [typeof value === 'number' ? `${value.toFixed(2)}%` : `${value}%`, 'Error Rate'];
                       }}
                       contentStyle={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }} 

@@ -9,6 +9,7 @@ import Footer from '../components/Footer';
 import { TestConfig } from '../components/TestForm';
 import { toast } from "sonner";
 import { Play } from 'lucide-react';
+import { runPerformanceTest, PerformanceMetrics } from '../services/performanceService';
 
 const Index = () => {
   const [testStarted, setTestStarted] = useState(false);
@@ -16,6 +17,7 @@ const Index = () => {
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | undefined>(undefined);
   
   useEffect(() => {
     // Cleanup timer on component unmount
@@ -24,7 +26,7 @@ const Index = () => {
     };
   }, [timer]);
   
-  const handleStartTest = (config: TestConfig) => {
+  const handleStartTest = async (config: TestConfig) => {
     setIsLoading(true);
     setTestConfig(config);
     setTimeRemaining(config.duration);
@@ -34,20 +36,33 @@ const Index = () => {
       id: "test-running",
     });
     
-    // Set up a timer that updates every second
-    const intervalId = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev === null || prev <= 1) {
-          // Time is up, clear interval and finish test
-          clearInterval(intervalId);
-          completeTest(config);
-          return 0;
-        }
-        return prev - 1;
+    try {
+      // Run the performance test
+      const metrics = await runPerformanceTest(config);
+      setPerformanceMetrics(metrics);
+      
+      // Set up a timer that updates every second to simulate test running time
+      const intervalId = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === null || prev <= 1) {
+            // Time is up, clear interval and finish test
+            clearInterval(intervalId);
+            completeTest(config);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      setTimer(intervalId);
+    } catch (error) {
+      console.error('Error running test:', error);
+      toast.error("Test failed", {
+        id: "test-running",
+        description: error instanceof Error ? error.message : "Failed to run performance test",
       });
-    }, 1000);
-    
-    setTimer(intervalId);
+      setIsLoading(false);
+    }
   };
   
   const completeTest = (config: TestConfig) => {
@@ -123,7 +138,13 @@ const Index = () => {
                 </p>
               </div>
               
-              {testConfig && <ResultsPanel testConfig={testConfig} isVisible={testStarted} />}
+              {testConfig && (
+                <ResultsPanel 
+                  testConfig={testConfig} 
+                  isVisible={testStarted} 
+                  metrics={performanceMetrics}
+                />
+              )}
             </div>
           )}
         </div>
