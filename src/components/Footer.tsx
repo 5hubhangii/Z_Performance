@@ -23,12 +23,12 @@ const Footer: React.FC = () => {
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">API Reference</a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Blog</a>
               </li>
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Case Studies</a>
-              </li>
+              </li> */}
             </ul>
           </div>
           
@@ -41,12 +41,12 @@ const Footer: React.FC = () => {
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
               </li>
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

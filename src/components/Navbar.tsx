@@ -20,12 +20,12 @@ const Navbar: React.FC = () => {
           >
             Features
           </a>
-          <a 
+          {/* <a 
             href="#documentation" 
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             Docs
-          </a>
+          </a> */}
         </nav>
       </div>
     </header>
