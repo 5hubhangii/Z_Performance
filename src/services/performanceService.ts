@@ -25,7 +25,7 @@ export interface PerformanceMetrics {
   };
 }
 
-// Backend API URL - update this with your actual backend URL
+// Backend API URL
 const BACKEND_API_URL = 'http://localhost:5000';
 
 /**
@@ -34,6 +34,35 @@ const BACKEND_API_URL = 'http://localhost:5000';
 export const runPerformanceTest = async (config: TestConfig): Promise<PerformanceMetrics> => {
   try {
     console.log(`Running ${config.testType} test for ${config.url}...`);
+    
+    // Try to validate backend availability
+    try {
+      const healthResponse = await fetch(`${BACKEND_API_URL}/health`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (healthResponse.ok) {
+        const healthData = await healthResponse.json();
+        console.log('Backend health check:', healthData);
+        
+        // Check if JMeter is properly installed and test cases exist
+        if (!healthData.jmeter_installed) {
+          console.warn('JMeter not found at path:', healthData.jmeter_path);
+          throw new Error('JMeter installation not found. Please verify the path in the backend configuration.');
+        }
+        
+        if (healthData.test_cases.length === 0) {
+          console.warn('No JMeter test cases found in:', healthData.test_cases_dir);
+          throw new Error('No JMeter test cases found. Please ensure Apache.jmx exists in the test_cases directory.');
+        }
+      }
+    } catch (error) {
+      console.warn('Backend health check failed:', error);
+      // We'll continue and let the main request handle errors
+    }
     
     // Make a request to the backend API
     const response = await fetch(`${BACKEND_API_URL}/api/run-test`, {
